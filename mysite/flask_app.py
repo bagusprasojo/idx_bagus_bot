@@ -44,7 +44,24 @@ def login():
 @app.route('/daftar_pengakses')
 @login_required
 def daftar_pengakses():
-    return render_template('daftar_pengakses.html')
+    # Koneksi ke database
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)  # Menggunakan dictionary agar hasil query mudah dipakai
+    
+    # Query untuk mengambil 10 data terakhir
+    cursor.execute("""
+        select a.user_telegram_id, a.user_telegram_username, a.tgl_akses, a.menu from tb_akses a
+        ORDER BY a.tgl_akses desc limit 20
+    """)
+    
+    # Ambil hasil query
+    aksess = cursor.fetchall()
+    
+    # Tutup koneksi database
+    cursor.close()
+    conn.close()
+
+    return render_template('daftar_pengakses.html', aksess=aksess)
 
 @app.route('/daftar_berita')
 @login_required
@@ -56,7 +73,7 @@ def daftar_berita():
     # Query untuk mengambil 10 data terakhir
     cursor.execute("""
         SELECT kode_emiten, tanggal, id FROM tb_news 
-        ORDER BY tanggal DESC, id desc LIMIT 10
+        ORDER BY tanggal DESC, id desc LIMIT 20
     """)
     
     # Ambil hasil query

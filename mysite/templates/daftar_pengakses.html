@@ -6,5 +6,28 @@
 <header>
     <h1>Daftar Pengakses</h1>
 </header>
-<p>Halaman ini berisi daftar pengakses informasi.</p>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>#</th> <!-- Kolom Nomor Urut -->
+            <th>User ID</th>
+            <th>Username</th>
+            <th>Tanggal</th>
+            <th>Menu</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for akses in aksess %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td>{{ akses.user_telegram_id }}</td>
+                <td>{{ akses.user_telegram_username }}</td>
+                <td>{{ akses.tgl_akses }}</td>
+                <td>{{ akses.menu }}</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
 {% endblock %}

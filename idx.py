@@ -75,18 +75,34 @@ def save_news(kode_emiten, hasil):
             (news_id, title, link, snippet)
         )
     conn.commit()
+    cursor.close()
     conn.close()
 
 
-# Fungsi yang akan dijalankan ketika perintah /start dikirimkan
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+def simpan_log_akses(update: Update, menu):
     user_id = update.message.from_user.id
     username = update.message.from_user.username
 
-    print(user_id)
-    print(username)
+    now = datetime.now()
+    current_time = now.strftime('%Y-%m-%d %H:%M:%S')
+
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True) 
+
+    cursor.execute(
+        "INSERT INTO tb_akses (user_telegram_id, user_telegram_username, tgl_akses, menu) VALUES (%s, %s, %s, %s)" , (user_id, username, current_time,menu)
+    )
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+# Fungsi yang akan dijalankan ketika perintah /start dikirimkan
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    simpan_log_akses(update, 'start')
 
     await update.message.reply_text('Silakan manfaatkan BOT ini untuk keperluan Trading/Investing\n\nKetik /help untuk mendapatkan daftar perintah yang dipakai')
+
+    
 
 def get_pesan_pengumuman(akode_emiten, atipe):
     conn = get_db_connection()
@@ -142,6 +158,8 @@ async def keterbukaan(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
             
         else:
             await update.message.reply_text('<b>Please provide Emiten Code</b>', parse_mode='HTML')
+
+        simpan_log_akses(update, 'keterbukaan')
     except Exception as e:
         print(f"Error: {e}")
         await update.message.reply_text("Error happened, try again")
@@ -162,6 +180,8 @@ async def pengumuman(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
             
         else:
             await update.message.reply_text('<b>Please provide Emiten Code</b>', parse_mode='HTML')
+
+        simpan_log_akses(update, 'pengumuman')
     except Exception as e:
         print(f"Error: {e}")
         await update.message.reply_text("Error happened, try again")
@@ -213,6 +233,8 @@ async def news(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             # await update.message.reply_text(f'<i>Done showing news about {kode_emiten}!</i>', parse_mode='HTML')
         else:
             await update.message.reply_text('<b>Please provide Emiten Code</b>', parse_mode='HTML')
+
+        simpan_log_akses(update, 'news')
     except Exception as e:
         print(f"Error: {e}")
         await update.message.reply_text("Error happened, try again")
@@ -233,6 +255,8 @@ async def help(update, context):
         """
 
     await update.message.reply_text(pesan)
+
+    simpan_log_akses(update, 'help')
 
 def cari(query, api_key, cx_key, jumlah_hasil=10):
     print(f'Custom Search {query}')

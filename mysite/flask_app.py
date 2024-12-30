@@ -1,8 +1,10 @@
 from flask import Flask, render_template, session, redirect, url_for  
 from auth import auth_bp  # Import blueprint
+from api import api_bp  # Import blueprint
 import mysql.connector
 import os
 from dotenv import load_dotenv
+
 
 load_dotenv()
 
@@ -11,6 +13,7 @@ app.secret_key = 'your_secret_key'  # Untuk sesi, pastikan mengganti dengan key 
 
 # Mendaftarkan blueprint untuk autentikasi
 app.register_blueprint(auth_bp)
+app.register_blueprint(api_bp, url_prefix='/api')
 
 # Koneksi ke database MySQL
 def get_db_connection():

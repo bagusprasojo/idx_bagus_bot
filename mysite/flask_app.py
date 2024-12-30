@@ -1,11 +1,25 @@
 from flask import Flask, render_template, session, redirect, url_for  
 from auth import auth_bp  # Import blueprint
+import mysql.connector
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'  # Untuk sesi, pastikan mengganti dengan key yang lebih aman
 
 # Mendaftarkan blueprint untuk autentikasi
 app.register_blueprint(auth_bp)
+
+# Koneksi ke database MySQL
+def get_db_connection():
+    return mysql.connector.connect(
+        host=os.getenv("host"),
+        user=os.getenv("user"),
+        password=os.getenv("password"),
+        database=os.getenv("database")
+    )
 
 # Dekorator untuk memeriksa apakah pengguna sudah login
 def login_required(f):
@@ -35,7 +49,24 @@ def daftar_pengakses():
 @app.route('/daftar_berita')
 @login_required
 def daftar_berita():
-    return render_template('daftar_berita.html')
+    # Koneksi ke database
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)  # Menggunakan dictionary agar hasil query mudah dipakai
+    
+    # Query untuk mengambil 10 data terakhir
+    cursor.execute("""
+        SELECT kode_emiten, tanggal FROM tb_news 
+        ORDER BY tanggal DESC LIMIT 10
+    """)
+    
+    # Ambil hasil query
+    berita = cursor.fetchall()
+    
+    # Tutup koneksi database
+    cursor.close()
+    conn.close()
+
+    return render_template('daftar_berita.html', beritas=berita)
 
 @app.route('/keterbukaan_informasi')
 @login_required

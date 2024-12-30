@@ -4,7 +4,25 @@
 
 {% block content %}
 <header>
-    <h1>Daftar Berita</h1>
+    <h1>Daftar Berita Terbaru</h1>
 </header>
-<p>Halaman ini berisi daftar berita terbaru.</p>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>#</th> <!-- Kolom Nomor Urut -->
+            <th>Kode Emiten</th>
+            <th>Tanggal</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for berita in beritas %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td>{{ berita.kode_emiten }}</td>
+                <td>{{ berita.tanggal }}</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
 {% endblock %}

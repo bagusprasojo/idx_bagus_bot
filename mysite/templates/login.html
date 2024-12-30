@@ -7,7 +7,7 @@
     <h1>Login</h1>
 </header>
 
-<form action="/login" method="POST">
+<form action="{{ url_for('auth.login') }}" method="POST">
     <label for="username">Username:</label>
     <input type="text" id="username" name="username" required>
 
@@ -16,4 +16,5 @@
 
     <button type="submit">Login</button>
 </form>
+
 {% endblock %}

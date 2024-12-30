@@ -11,10 +11,15 @@
     <nav>
         <ul>
             <li><a href="{{ url_for('homepage') }}">Home</a></li>
-            <li><a href="{{ url_for('login') }}">Login</a></li>
             <li><a href="{{ url_for('daftar_pengakses') }}">Daftar Pengakses</a></li>
             <li><a href="{{ url_for('daftar_berita') }}">Daftar Berita</a></li>
             <li><a href="{{ url_for('keterbukaan_informasi') }}">Daftar Keterbukaan Informasi</a></li>
+            {% if username %}
+                <li><a href="{{ url_for('auth.logout') }}">Logout</a></li>
+            {% else %}
+                <li><a href="{{ url_for('login') }}">Login</a></li>
+            {% endif %}
+            
         </ul>
     </nav>
 

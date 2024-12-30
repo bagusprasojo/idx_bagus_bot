@@ -55,8 +55,8 @@ def daftar_berita():
     
     # Query untuk mengambil 10 data terakhir
     cursor.execute("""
-        SELECT kode_emiten, tanggal FROM tb_news 
-        ORDER BY tanggal DESC LIMIT 10
+        SELECT kode_emiten, tanggal, id FROM tb_news 
+        ORDER BY tanggal DESC, id desc LIMIT 10
     """)
     
     # Ambil hasil query

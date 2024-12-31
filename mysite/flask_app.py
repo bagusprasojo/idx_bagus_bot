@@ -1,9 +1,10 @@
 from flask import Flask, render_template, session, redirect, url_for  
 from auth import auth_bp  # Import blueprint
-from api import api_bp  # Import blueprint
+from api import api_bp, db
 import mysql.connector
 import os
 from dotenv import load_dotenv
+from flask_migrate import Migrate
 
 
 load_dotenv()
@@ -14,6 +15,14 @@ app.secret_key = 'your_secret_key'  # Untuk sesi, pastikan mengganti dengan key 
 # Mendaftarkan blueprint untuk autentikasi
 app.register_blueprint(auth_bp)
 app.register_blueprint(api_bp, url_prefix='/api')
+
+# Konfigurasi database
+app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql+pymysql://{os.getenv("user")}:{os.getenv("password")}@{os.getenv("host")}/{os.getenv("database")}'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# Inisialisasi SQLAlchemy
+db.init_app(app)
+migrate = Migrate(app, db)
 
 # Koneksi ke database MySQL
 def get_db_connection():

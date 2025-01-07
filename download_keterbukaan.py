@@ -34,7 +34,8 @@ def proses_json_keterbukaan(filename):
       return  # Keluar dari fungsi jika file tidak ditemukan
 
   # URL endpoint untuk memproses JSON
-  url = "http://localhost:5000/api/process-json-keterbukaan"
+  url = "https://bagusprasojo.pythonanywhere.com/api/process-json-keterbukaan"
+  # url = "http://localhost:5000/api/process-json-keterbukaan"
 
   # Nama file JSON yang telah disimpan sebelumnya
   # filename = '20240101_20241224_4.json'

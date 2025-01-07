@@ -116,7 +116,7 @@ def get_pesan_pengumuman(akode_emiten, atipe):
     pesan_pengumuman = ""
     for keterbukaan in keterbukaans:
         nomor = nomor + 1
-        pesan_pengumuman = pesan_pengumuman + f"{nomor}.{keterbukaan['judul_pengumuman']}\n"
+        pesan_pengumuman = pesan_pengumuman + f"{nomor}.{keterbukaan['judul_pengumuman']} [Tanggal : {keterbukaan['tgl_pengumuman']}]\n"
 
 
         id_pengumuman = keterbukaan['id']
@@ -146,7 +146,7 @@ async def keterbukaan(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     try:
         if context.args:
             kode_emiten = context.args[0].upper()
-            pesan = f"<b>Keterbukaan Informasi Saham {kode_emiten}</b>\n\n"
+            pesan = f"<b>Keterbukaan Informasi Saham {kode_emiten} </b>\n\n"
             pesa = pesan + """
             """
 

@@ -2,6 +2,7 @@
 from flask import Blueprint, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from enum import Enum
+from sqlalchemy.inspection import inspect
 
 # Membuat blueprint untuk API
 api_bp = Blueprint('api', __name__)
@@ -82,8 +83,8 @@ class Sekretaris(db.Model):
     id_profile = db.Column(db.Integer, db.ForeignKey('tb_profiles.id'), nullable=False)
 
 # Endpoint untuk memproses JSON
-@api_bp.route('/process-json', methods=['POST'])
-def process_json():
+@api_bp.route('/process-json-profile', methods=['POST'])
+def process_json_profile():
     try:
         # Mendapatkan data JSON dari request
         data = request.get_json()
@@ -113,7 +114,8 @@ def process_json():
                     website=profile_data.get('Website')
                 )
 
-            db.session.add(profile)
+                db.session.add(profile)
+
             db.session.flush()
 
             Sekretaris.query.filter_by(id_profile=profile.id).delete()
@@ -133,6 +135,72 @@ def process_json():
 
         # Menyimpan perubahan ke database
         db.session.commit()
+
+        return jsonify({"message": "Data processed and saved successfully"}), 201
+
+    except Exception as e:
+        # Jika terjadi kesalahan, rollback perubahan
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
+
+
+@api_bp.route('/process-json-keterbukaan', methods=['POST'])
+def process_json_keterbukaan():
+    try:
+        # Mendapatkan data JSON dari request
+        data = request.get_json()
+
+        # Memproses data Profiles
+        replies = data.get('Replies', [])
+        for reply_data in replies:
+            pengumuman_data = reply_data['pengumuman']
+            
+            pengumuman = Pengumuman.query.filter(
+                Pengumuman.kode_emiten == pengumuman_data['Kode_Emiten'].strip(),
+                Pengumuman.no_pengumuman == pengumuman_data['NoPengumuman'].strip()
+            ).first()
+            
+            print(pengumuman)
+
+            if pengumuman:                
+                pengumuman.kode_emiten = pengumuman_data['Kode_Emiten'].strip()
+                pengumuman.no_pengumuman = pengumuman_data['NoPengumuman'].strip()
+                pengumuman.tgl_pengumuman = pengumuman_data['TglPengumuman']
+                pengumuman.judul_pengumuman = pengumuman_data['JudulPengumuman'].strip()
+                pengumuman.jenis_pengumuman = pengumuman_data['JenisPengumuman'].strip()
+                pengumuman.perihal_pengumuman = pengumuman_data['PerihalPengumuman'].strip()
+                pengumuman.tipe = 'keterbukaan'                
+            else:                
+                pengumuman = Pengumuman(
+                    kode_emiten = pengumuman_data['Kode_Emiten'].strip(),
+                    no_pengumuman = pengumuman_data['NoPengumuman'].strip(),
+                    tgl_pengumuman = pengumuman_data['TglPengumuman'],
+                    judul_pengumuman = pengumuman_data['JudulPengumuman'].strip(),
+                    jenis_pengumuman = pengumuman_data['JenisPengumuman'].strip(),
+                    perihal_pengumuman = pengumuman_data['PerihalPengumuman'].strip(),
+                    tipe= 'keterbukaan'
+                )
+
+                db.session.add(pengumuman)
+
+            # Panggil fungsi commit untuk menyimpan perubahan
+            db.session.flush()
+            Pengumuman_Attachment.query.filter_by(id_pengumuman=pengumuman.id).delete()
+
+            attachments_data = reply_data['attachments']
+            for item in attachments_data:
+                attachment = Pengumuman_Attachment(
+                    pdf = item['PDFFilename'].strip(),
+                    url = item['FullSavePath'].strip(),
+                    original_name = item['OriginalFilename'].strip(),
+                    id_pengumuman = pengumuman.id
+                )
+
+                db.session.add(attachment)
+
+
+        db.session.commit()
+
 
         return jsonify({"message": "Data processed and saved successfully"}), 201
 

@@ -263,7 +263,7 @@ def cari(query, api_key, cx_key, jumlah_hasil=10):
 
     try:
         search_service = build("customsearch", "v1", developerKey=api_key)
-        res = search_service.cse().list(q=query, cx=cx_key, num=jumlah_hasil, dateRestrict='d30').execute()
+        res = search_service.cse().list(q=query, cx=cx_key, num=jumlah_hasil, dateRestrict='d30', sort='date').execute()
         return res.get('items', [])
     except Exception as e:
         print(f"Error fetching news: {e}")

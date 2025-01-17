@@ -61,7 +61,7 @@ def proses_json_keterbukaan(filename):
 
 def download_keterbukaan(aindex_from, atgl_awal, atgl_akhir, filename='isi'):
     driver = webdriver.Firefox()
-    url = f"https://www.idx.co.id/primary/ListedCompany/GetAnnouncement?emitenType=s&indexFrom={aindex_from}&pageSize=100&dateFrom={atgl_awal}&dateTo={atgl_akhir}&lang=id&keyword="
+    url = f"https://www.idx.co.id/primary/ListedCompany/GetAnnouncement?emitenType=s&indexFrom={aindex_from}&pageSize=20&dateFrom=19010101&dateTo={atgl_akhir}&lang=id&keyword="
     print(url)
     driver.get(url)
 
@@ -80,7 +80,7 @@ try:
         print(i)
         # Menghitung tgl_akhir (tanggal sekarang) dan tgl_awal (30 hari yang lalu)
         tgl_akhir = datetime.datetime.now().strftime('%Y%m%d')  # Tanggal sekarang dalam format YYYYMMDD
-        tgl_awal = (datetime.datetime.now() - datetime.timedelta(days=30)).strftime('%Y%m%d')  # 30 hari yang lalu       
+        tgl_awal = (datetime.datetime.now() - datetime.timedelta(days=7)).strftime('%Y%m%d')  # 7 hari yang lalu       
 
         filename = f"{tgl_awal}_{tgl_akhir}_{i}.json"
         print('Download ' + filename)

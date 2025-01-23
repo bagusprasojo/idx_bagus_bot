@@ -112,12 +112,13 @@ def get_pesan_pengumuman(akode_emiten, akelompok):
     sfilter = '%'
     if (akelompok == "PE"):
         sfilter = '%public expose%'
+    elif (akelompok == "div"):
+        sfilter = '%dividen%'
 
     print(akode_emiten)
     print(sfilter)
     
     cursor.execute("SELECT * FROM tb_pengumuman WHERE kode_emiten = %s AND judul_pengumuman like %s order by tgl_pengumuman desc limit 10", (akode_emiten,sfilter))
-    print("SELECT * FROM tb_pengumuman WHERE kode_emiten = %s AND judul_pengumuman like %s order by tgl_pengumuman desc limit 10", (akode_emiten,sfilter))
     keterbukaans = cursor.fetchall()
     
 

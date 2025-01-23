@@ -104,11 +104,20 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
     
 
-def get_pesan_pengumuman(akode_emiten, atipe):
+def get_pesan_pengumuman(akode_emiten, akelompok):
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     today = date.today()
-    cursor.execute("SELECT * FROM tb_pengumuman WHERE kode_emiten = %s AND tipe = %s order by tgl_pengumuman desc limit 10", (akode_emiten,atipe))
+
+    sfilter = '%'
+    if (akelompok == "PE"):
+        sfilter = '%public expose%'
+
+    print(akode_emiten)
+    print(sfilter)
+    
+    cursor.execute("SELECT * FROM tb_pengumuman WHERE kode_emiten = %s AND judul_pengumuman like %s order by tgl_pengumuman desc limit 10", (akode_emiten,sfilter))
+    print("SELECT * FROM tb_pengumuman WHERE kode_emiten = %s AND judul_pengumuman like %s order by tgl_pengumuman desc limit 10", (akode_emiten,sfilter))
     keterbukaans = cursor.fetchall()
     
 
@@ -142,15 +151,22 @@ def get_pesan_pengumuman(akode_emiten, atipe):
     
     return pesan_pengumuman
 
+
 async def keterbukaan(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     try:
         if context.args:
             kode_emiten = context.args[0].upper()
+                
+            if (len(context.args) > 1):
+                kelompok = context.args[1].upper()
+            else:
+                kelompok = '%'
+
             pesan = f"<b>Keterbukaan Informasi Saham {kode_emiten} </b>\n\n"
             pesa = pesan + """
             """
 
-            pesan_pengumuman = get_pesan_pengumuman(kode_emiten, 'keterbukaan')
+            pesan_pengumuman = get_pesan_pengumuman(kode_emiten, kelompok)
             if pesan_pengumuman:
                 pesan = pesan + ' ' + pesan_pengumuman
 

@@ -112,7 +112,7 @@ def get_pesan_pengumuman(akode_emiten, akelompok):
     sfilter = '%'
     if (akelompok == "PE"):
         sfilter = '%public expose%'
-    elif (akelompok == "div"):
+    elif (akelompok == "DIV"):
         sfilter = '%dividen%'
 
     print(akode_emiten)

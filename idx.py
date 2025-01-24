@@ -262,8 +262,8 @@ async def emiten(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             kelompok = context.args[0].upper()
 
             offset = 1
-            if len(args) > 1:
-                offset = int(args[1])
+            if len(context.args) > 1:
+                offset = int(context.args[1])
 
             pesan = f"<b>10 Emiten ke-{offset} Dengan Opsi {kelompok}</b>\n\n"
 

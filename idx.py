@@ -355,9 +355,11 @@ async def help(update, context):
         /news [KODE_EMITIEN] - Mendapatkan berita tentang emiten tertentu.
         /keterbukaan [KODE_EMITIEN] - Mendapatkan keterbukaan informasi emiten tertentu.
         /keterbukaan [KODE_EMITIEN] [OPSI]- Mendapatkan keterbukaan informasi emiten tertentu khusus keterbukaan tertentu.        
-        /emiten [OPSI] - Mendapatkan daftar emiten dengan aksi korporasi tertentu
+        /emiten [OPSI] - Mendapatkan 10 daftar pertama emiten dengan aksi korporasi tertentu
+        /emiten [OPSI] [INDEX]- Mendapatkan 10 daftar ke-INDEX emiten dengan aksi korporasi tertentu 
 
         OPSI : pe = public expose, div = dividen, rups = RUPS
+        INDEX : 1, 2, 3, 4, dst
 
         /help - Menampilkan pesan bantuan ini.
 
@@ -365,7 +367,18 @@ async def help(update, context):
         /news TLKM
         /keterbukaan TLKM
         /keterbukaan TLKM pe
+
         /emiten pe
+        /emiten pe 2
+        /emiten pe 3
+
+        /emiten div
+        /emiten div 2
+        /emiten div 3
+
+        /emiten rups
+        /emiten rups 2
+        /emiten rups 3
         """
 
     await update.message.reply_text(pesan)

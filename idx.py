@@ -130,7 +130,7 @@ def get_emiten_by_jenis_pengumuman(akelompok, aoffset):
                     + " WHERE a.judul_pengumuman like %s "
                     + " GROUP BY a.kode_emiten " 
                     + " order by 2 desc " 
-                    + " limit 10 offset %s", (sfilter,aoffset))
+                    + " limit 20 offset %s", (sfilter,aoffset))
     keterbukaans = cursor.fetchall()
     
 
@@ -260,10 +260,15 @@ async def emiten(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     try:
         if context.args:
             kelompok = context.args[0].upper()
-            pesan = f"<b>Daftar Emiten Dengan Opsi {kelompok}</b>\n\n"
+
+            offset = 1
+            if len(args) > 1:
+                offset = int(args[1])
+
+            pesan = f"<b>10 Emiten ke-{offset} Dengan Opsi {kelompok}</b>\n\n"
 
             # Dapatkan pesan pengumuman dan tombol
-            keyboard = get_emiten_by_jenis_pengumuman(kelompok, 1)
+            keyboard = get_emiten_by_jenis_pengumuman(kelompok, offset)
             # if pesan_pengumuman:
             #     pesan += pesan_pengumuman
             # else:

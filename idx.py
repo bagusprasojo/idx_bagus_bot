@@ -126,14 +126,15 @@ def get_emiten_by_jenis_pengumuman(akelompok, aindex):
     print(sfilter)
     
     jml_baris = 10
-    offset = aindex * jml_baris
+
+    offset = (aindex - 1) * jml_baris
     
-    cursor.execute(f"SELECT a.kode_emiten, max(a.tgl_pengumuman) as tgl_pengumuman "
+    cursor.execute("SELECT a.kode_emiten, max(a.tgl_pengumuman) as tgl_pengumuman "
                     + " FROM tb_pengumuman a " 
                     + " WHERE a.judul_pengumuman like %s "
                     + " GROUP BY a.kode_emiten " 
                     + " order by 2 desc " 
-                    + " limit {jml_baris} offset %s", (sfilter,offset))
+                    + " limit %s offset %s", (sfilter,jml_baris, offset))
     keterbukaans = cursor.fetchall()
     
 
@@ -266,14 +267,14 @@ async def emiten(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         if context.args:
             kelompok = context.args[0].upper()
 
-            offset = 1
+            index = 1
             if len(context.args) > 1:
-                offset = int(context.args[1])
+                index = int(context.args[1])
 
-            pesan = f"<b>10 Emiten ke-{offset} Dengan Opsi {kelompok}</b>\n\n"
+            pesan = f"<b>10 Emiten ke-{index} Dengan Opsi {kelompok}</b>\n\n"
 
             # Dapatkan pesan pengumuman dan tombol
-            keyboard = get_emiten_by_jenis_pengumuman(kelompok, offset)
+            keyboard = get_emiten_by_jenis_pengumuman(kelompok, index)
             # if pesan_pengumuman:
             #     pesan += pesan_pengumuman
             # else:

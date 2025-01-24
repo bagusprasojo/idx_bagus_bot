@@ -2,8 +2,8 @@ import mysql.connector
 from dotenv import load_dotenv
 from googleapiclient.discovery import build
 import webbrowser
-from telegram import Update
-from telegram.ext import Application, CommandHandler, ContextTypes, ApplicationBuilder, ContextTypes
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import Application, CommandHandler, ContextTypes, ApplicationBuilder, ContextTypes, CallbackQueryHandler, CallbackContext
 
 import json
 import os
@@ -79,9 +79,14 @@ def save_news(kode_emiten, hasil):
     conn.close()
 
 
-def simpan_log_akses(update: Update, menu):
-    user_id = update.message.from_user.id
-    username = update.message.from_user.username
+def simpan_log_akses(update: Update, menu, is_callback: bool = False):
+
+    if (is_callback):
+        user_id = 0
+        username = "Callback"
+    else:
+        user_id = update.message.from_user.id
+        username = update.message.from_user.username
 
     now = datetime.now()
     current_time = now.strftime('%Y-%m-%d %H:%M:%S')
@@ -103,6 +108,53 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text('Silakan manfaatkan BOT ini untuk keperluan Trading/Investing\n\nKetik /help untuk mendapatkan daftar perintah yang dipakai')
 
     
+
+def get_emiten_by_jenis_pengumuman(akelompok, aoffset):
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    today = date.today()
+
+    sfilter = '%'
+    if (akelompok == "PE"):
+        sfilter = '%public expose%'
+    elif (akelompok == "DIV"):
+        sfilter = '%dividen%'
+    elif (akelompok == "RUPS"):
+        sfilter = '%rups%'
+
+    print(akelompok)
+    print(sfilter)
+    
+    cursor.execute("SELECT a.kode_emiten, max(a.tgl_pengumuman) as tgl_pengumuman "
+                    + " FROM tb_pengumuman a " 
+                    + " WHERE a.judul_pengumuman like %s "
+                    + " GROUP BY a.kode_emiten " 
+                    + " order by 2 desc " 
+                    + " limit 10 offset %s", (sfilter,aoffset))
+    keterbukaans = cursor.fetchall()
+    
+
+    nomor = aoffset
+    pesan_pengumuman = ""
+    keyboard = []
+
+    for keterbukaan in keterbukaans:
+        # pesan_pengumuman += f"{nomor}. {keterbukaan['kode_emiten']} [Tanggal: {keterbukaan['tgl_pengumuman']}]\n"
+        # Tambahkan tombol untuk setiap kode emiten
+        keyboard.append([
+            InlineKeyboardButton(
+                text=f"{nomor}. {keterbukaan['kode_emiten']} [Tanggal: {keterbukaan['tgl_pengumuman']}]",
+                callback_data=f"/keterbukaan {keterbukaan['kode_emiten']} {akelompok}"
+            )
+        ])
+        nomor += 1
+        
+        
+
+    cursor.close()
+    conn.close()
+    
+    return InlineKeyboardMarkup(keyboard)
 
 def get_pesan_pengumuman(akode_emiten, akelompok):
     conn = get_db_connection()
@@ -155,52 +207,76 @@ def get_pesan_pengumuman(akode_emiten, akelompok):
     return pesan_pengumuman
 
 
-async def keterbukaan(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def keterbukaan(update: Update, context: ContextTypes.DEFAULT_TYPE, is_callback: bool = False) -> None:
     try:
+        print("masuk sini")
+
+        # Tentukan sumber pesan
+        message = (
+            update.callback_query.message if is_callback else update.message
+        )
+
+
+
         if context.args:
             kode_emiten = context.args[0].upper()
-                
-            if (len(context.args) > 1):
+
+            if len(context.args) > 1:
                 kelompok = context.args[1].upper()
             else:
                 kelompok = '%'
 
-            pesan = f"<b>Keterbukaan Informasi Saham {kode_emiten} </b>\n\n"
-            pesa = pesan + """
-            """
-
+            pesan = f"<b>Keterbukaan Informasi Saham {kode_emiten}</b>\n\n"
             pesan_pengumuman = get_pesan_pengumuman(kode_emiten, kelompok)
             if pesan_pengumuman:
-                pesan = pesan + ' ' + pesan_pengumuman
+                pesan += pesan_pengumuman
 
-            await update.message.reply_text(pesan, parse_mode='HTML')
-            
+            # Balas pesan sesuai sumbernya
+            if is_callback:
+                print("Masuk Call Back")
+                await message.edit_text(pesan, parse_mode='HTML')
+            else:
+                print("Masuk Biasa")
+                print(pesan)
+                await message.reply_text(pesan, parse_mode='HTML')
         else:
-            await update.message.reply_text('<b>Please provide Emiten Code</b>', parse_mode='HTML')
+            error_msg = '<b>Please provide Emiten Code</b>'
+            if is_callback:
+                await message.edit_text(error_msg, parse_mode='HTML')
+            else:
+                await message.reply_text(error_msg, parse_mode='HTML')
 
-        simpan_log_akses(update, 'keterbukaan')
+        simpan_log_akses(update, 'keterbukaan', is_callback)
     except Exception as e:
         print(f"Error: {e}")
-        await update.message.reply_text("Error happened, try again")
+        error_msg = "Error happened, try again"
+        if is_callback:
+            await message.edit_text(error_msg)
+        else:
+            await message.reply_text(error_msg)
 
-async def pengumuman(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+
+async def emiten(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     try:
         if context.args:
-            kode_emiten = context.args[0].upper()
-            pesan = f"<b>Pengumuman Saham {kode_emiten}</b>\n\n"
-            pesa = pesan + """
-            """
+            kelompok = context.args[0].upper()
+            pesan = f"<b>Pengumuman Saham {kelompok}</b>\n\n"
 
-            pesan_pengumuman = get_pesan_pengumuman(kode_emiten, 'pengumuman')
-            if pesan_pengumuman:
-                pesan = pesan + ' ' + pesan_pengumuman
+            # Dapatkan pesan pengumuman dan tombol
+            keyboard = get_emiten_by_jenis_pengumuman(kelompok, 1)
+            # if pesan_pengumuman:
+            #     pesan += pesan_pengumuman
+            # else:
+            #     pesan += "Tidak ada pengumuman yang ditemukan."
 
-            await update.message.reply_text(pesan, parse_mode='HTML')
-            
+            # Kirim pesan dengan inline keyboard
+            await update.message.reply_text(
+                pesan, parse_mode='HTML', reply_markup=keyboard
+            )
         else:
             await update.message.reply_text('<b>Please provide Emiten Code</b>', parse_mode='HTML')
 
-        simpan_log_akses(update, 'pengumuman')
+        simpan_log_akses(update, 'emiten')
     except Exception as e:
         print(f"Error: {e}")
         await update.message.reply_text("Error happened, try again")
@@ -288,6 +364,22 @@ def cari(query, api_key, cx_key, jumlah_hasil=10):
         print(f"Error fetching news: {e}")
         return []
 
+async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    try:
+        query = update.callback_query
+        await query.answer()  # Menjawab callback query agar tidak menunggu
+
+        # Ambil argumen dari callback data
+        args = query.data.split(" ")
+        if len(args) >= 3:
+            context.args = args[1:]  # Simpan argumen untuk handler perintah
+            # Eksekusi handler /keterbukaan
+            await keterbukaan(update, context, is_callback=True)
+        else:
+            await query.edit_message_text(text="Format callback data tidak valid.")
+    except Exception as e:
+        print(f"Error in callback: {e}")
+
 
 # Fungsi utama untuk menjalankan bot
 def main() -> None:
@@ -304,7 +396,8 @@ def main() -> None:
     application.add_handler(CommandHandler("news", news))
     application.add_handler(CommandHandler("help", help))
     application.add_handler(CommandHandler("keterbukaan", keterbukaan))
-    application.add_handler(CommandHandler("pengumuman", pengumuman))
+    application.add_handler(CommandHandler("emiten", emiten))
+    application.add_handler(CallbackQueryHandler(handle_callback))
     
     # Memulai bot
     application.run_polling()

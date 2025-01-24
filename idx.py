@@ -226,7 +226,7 @@ async def keterbukaan(update: Update, context: ContextTypes.DEFAULT_TYPE, is_cal
             else:
                 kelompok = '%'
 
-            pesan = f"<b>Keterbukaan Informasi Saham {kode_emiten}</b>\n\n"
+            pesan = f"<b>Keterbukaan Informasi Saham {kode_emiten} - {kelompok}</b>\n\n"
             pesan_pengumuman = get_pesan_pengumuman(kode_emiten, kelompok)
             if pesan_pengumuman:
                 pesan += pesan_pengumuman
@@ -260,7 +260,7 @@ async def emiten(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     try:
         if context.args:
             kelompok = context.args[0].upper()
-            pesan = f"<b>Pengumuman Saham {kelompok}</b>\n\n"
+            pesan = f"<b>Daftar Emiten Dengan Opsi {kelompok}</b>\n\n"
 
             # Dapatkan pesan pengumuman dan tombol
             keyboard = get_emiten_by_jenis_pengumuman(kelompok, 1)
@@ -343,10 +343,18 @@ async def help(update, context):
         /start - Memulai bot dan memastikan kesiapan.
         /news [KODE_EMITIEN] - Mendapatkan berita tentang emiten tertentu.
         /keterbukaan [KODE_EMITIEN] - Mendapatkan keterbukaan informasi emiten tertentu.
+        /keterbukaan [KODE_EMITIEN] [OPSI]- Mendapatkan keterbukaan informasi emiten tertentu khusus keterbukaan tertentu.        
+        /emiten [OPSI] - Mendapatkan daftar emiten dengan aksi korporasi tertentu
+
+        OPSI : pe = public expose, div = dividen, rups = RUPS
+
         /help - Menampilkan pesan bantuan ini.
 
         Contoh penggunaan:
         /news TLKM
+        /keterbukaan TLKM
+        /keterbukaan TLKM pe
+        /emiten pe
         """
 
     await update.message.reply_text(pesan)

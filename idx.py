@@ -144,15 +144,29 @@ def get_emiten_by_jenis_pengumuman(akelompok, aindex):
 
     for keterbukaan in keterbukaans:
         nomor += 1
-
-        # pesan_pengumuman += f"{nomor}. {keterbukaan['kode_emiten']} [Tanggal: {keterbukaan['tgl_pengumuman']}]\n"
-        # Tambahkan tombol untuk setiap kode emiten
         keyboard.append([
             InlineKeyboardButton(
                 text=f"{nomor}. {keterbukaan['kode_emiten']} [Tanggal: {keterbukaan['tgl_pengumuman']}]",
-                callback_data=f"/keterbukaan {keterbukaan['kode_emiten']} {akelompok}"
+                callback_data=f"keterbukaan {keterbukaan['kode_emiten']} {akelompok}"
             )
         ])
+
+    if (aindex > 1):
+        prev_index = aindex - 1
+        keyboard.append([
+            InlineKeyboardButton(
+                text=f"Prev",
+                callback_data=f"emiten {akelompok} {prev_index}"
+            )
+        ])
+
+    next_index = aindex + 1
+    keyboard.append([
+        InlineKeyboardButton(
+            text=f"Next",
+            callback_data=f"emiten {akelompok} {next_index}"
+        )
+    ])
         
         
         
@@ -262,7 +276,12 @@ async def keterbukaan(update: Update, context: ContextTypes.DEFAULT_TYPE, is_cal
             await message.reply_text(error_msg)
 
 
-async def emiten(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def emiten(update: Update, context: ContextTypes.DEFAULT_TYPE, is_callback: bool = False) -> None:
+    # Tentukan sumber pesan
+    message = (
+        update.callback_query.message if is_callback else update.message
+    )
+
     try:
         if context.args:
             kelompok = context.args[0].upper()
@@ -273,21 +292,19 @@ async def emiten(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
             pesan = f"<b>10 Emiten ke-{index} Dengan Opsi {kelompok}</b>\n\n"
 
-            # Dapatkan pesan pengumuman dan tombol
             keyboard = get_emiten_by_jenis_pengumuman(kelompok, index)
-            # if pesan_pengumuman:
-            #     pesan += pesan_pengumuman
-            # else:
-            #     pesan += "Tidak ada pengumuman yang ditemukan."
 
-            # Kirim pesan dengan inline keyboard
-            await update.message.reply_text(
-                pesan, parse_mode='HTML', reply_markup=keyboard
-            )
+            if is_callback:
+                await message.edit_text(pesan, parse_mode='HTML', reply_markup=keyboard)
+            else:
+                await message.reply_text(pesan, parse_mode='HTML', reply_markup=keyboard)
         else:
-            await update.message.reply_text('<b>Please provide Emiten Code</b>', parse_mode='HTML')
+            if is_callback:
+                await message.edit_text('<b>Please provide Emiten Code</b>', parse_mode='HTML')
+            else:
+                await message.reply_text('<b>Please provide Emiten Code</b>', parse_mode='HTML')
 
-        simpan_log_akses(update, 'emiten')
+        simpan_log_akses(update, 'emiten', is_callback)
     except Exception as e:
         print(f"Error: {e}")
         await update.message.reply_text("Error happened, try again")
@@ -403,10 +420,15 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 
         # Ambil argumen dari callback data
         args = query.data.split(" ")
-        if len(args) >= 3:
-            context.args = args[1:]  # Simpan argumen untuk handler perintah
-            # Eksekusi handler /keterbukaan
+        context.args = args[1:]
+
+        print("arg[0]")
+        print(args[0])
+
+        if (args[0] == "keterbukaan"):                    
             await keterbukaan(update, context, is_callback=True)
+        elif (args[0] == "emiten"):
+            await emiten(update, context, is_callback=True)
         else:
             await query.edit_message_text(text="Format callback data tidak valid.")
     except Exception as e:

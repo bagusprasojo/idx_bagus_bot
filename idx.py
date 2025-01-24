@@ -109,7 +109,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
     
 
-def get_emiten_by_jenis_pengumuman(akelompok, aoffset):
+def get_emiten_by_jenis_pengumuman(akelompok, aindex):
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     today = date.today()
@@ -125,20 +125,25 @@ def get_emiten_by_jenis_pengumuman(akelompok, aoffset):
     print(akelompok)
     print(sfilter)
     
-    cursor.execute("SELECT a.kode_emiten, max(a.tgl_pengumuman) as tgl_pengumuman "
+    jml_baris = 10
+    offset = aindex * jml_baris
+    
+    cursor.execute(f"SELECT a.kode_emiten, max(a.tgl_pengumuman) as tgl_pengumuman "
                     + " FROM tb_pengumuman a " 
                     + " WHERE a.judul_pengumuman like %s "
                     + " GROUP BY a.kode_emiten " 
                     + " order by 2 desc " 
-                    + " limit 20 offset %s", (sfilter,aoffset))
+                    + " limit {jml_baris} offset %s", (sfilter,offset))
     keterbukaans = cursor.fetchall()
     
 
-    nomor = aoffset
+    nomor = offset
     pesan_pengumuman = ""
     keyboard = []
 
     for keterbukaan in keterbukaans:
+        nomor += 1
+
         # pesan_pengumuman += f"{nomor}. {keterbukaan['kode_emiten']} [Tanggal: {keterbukaan['tgl_pengumuman']}]\n"
         # Tambahkan tombol untuk setiap kode emiten
         keyboard.append([
@@ -147,7 +152,7 @@ def get_emiten_by_jenis_pengumuman(akelompok, aoffset):
                 callback_data=f"/keterbukaan {keterbukaan['kode_emiten']} {akelompok}"
             )
         ])
-        nomor += 1
+        
         
         
 

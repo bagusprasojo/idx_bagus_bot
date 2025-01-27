@@ -302,9 +302,9 @@ async def emiten(update: Update, context: ContextTypes.DEFAULT_TYPE, is_callback
                 await message.reply_text(pesan, parse_mode='HTML', reply_markup=keyboard)
         else:
             if is_callback:
-                await message.edit_text('<b>Please provide Emiten Code</b>', parse_mode='HTML')
+                await message.edit_text('<b>Please provide Option Code</b>', parse_mode='HTML')
             else:
-                await message.reply_text('<b>Please provide Emiten Code</b>', parse_mode='HTML')
+                await message.reply_text('<b>Please provide Option Code</b>', parse_mode='HTML')
 
         simpan_log_akses(update, 'emiten', is_callback)
     except Exception as e:
@@ -443,24 +443,27 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 
 # Fungsi utama untuk menjalankan bot
 def main() -> None:
-    application = (
-        ApplicationBuilder()
-        .token(TOKEN)
-        .connect_timeout(10)  # Timeout koneksi
-        .read_timeout(30)     # Timeout membaca data
-        .build()
-    )
-    
-    # Menambahkan handler untuk command /start
-    application.add_handler(CommandHandler("start", start))
-    application.add_handler(CommandHandler("news", news))
-    application.add_handler(CommandHandler("help", help))
-    application.add_handler(CommandHandler("keterbukaan", keterbukaan))
-    application.add_handler(CommandHandler("emiten", emiten))
-    application.add_handler(CallbackQueryHandler(handle_callback))
-    
-    # Memulai bot
-    application.run_polling()
+    try:
+        application = (
+            ApplicationBuilder()
+            .token(TOKEN)
+            .connect_timeout(10)  # Timeout koneksi
+            .read_timeout(30)     # Timeout membaca data
+            .build()
+        )
+        
+        # Menambahkan handler untuk command /start
+        application.add_handler(CommandHandler("start", start))
+        application.add_handler(CommandHandler("news", news))
+        application.add_handler(CommandHandler("help", help))
+        application.add_handler(CommandHandler("keterbukaan", keterbukaan))
+        application.add_handler(CommandHandler("emiten", emiten))
+        application.add_handler(CallbackQueryHandler(handle_callback))
+        
+        # Memulai bot
+        application.run_polling()
+    except Exception as e:
+        print(f"Terjadi error: {e}")
 
 if __name__ == '__main__':
     print('BOT Telegram started')

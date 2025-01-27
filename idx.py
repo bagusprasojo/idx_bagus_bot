@@ -377,7 +377,7 @@ async def help(update, context):
         /emiten [OPSI] - Mendapatkan 10 daftar pertama emiten dengan aksi korporasi tertentu
         /emiten [OPSI] [INDEX]- Mendapatkan 10 daftar ke-INDEX emiten dengan aksi korporasi tertentu 
 
-        OPSI : pe = public expose, div = dividen, rups = RUPS
+        OPSI : pe = public expose, div = dividen, rups = RUPS, lk = Laporan Keuangan
         INDEX : 1, 2, 3, 4, dst
 
         /help - Menampilkan pesan bantuan ini.
@@ -398,6 +398,10 @@ async def help(update, context):
         /emiten rups
         /emiten rups 2
         /emiten rups 3
+
+        /emiten lk
+        /emiten lk 2
+        /emiten lk 3
         """
 
     await update.message.reply_text(pesan)

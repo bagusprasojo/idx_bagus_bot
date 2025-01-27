@@ -171,7 +171,7 @@ def get_emiten_by_jenis_pengumuman(akelompok, aindex):
     return InlineKeyboardMarkup(keyboard)
 
 def get_filter_pengumuman(akelompok):
-    sfilter = '%'
+    sfilter = f'%{akelompok}%'
     if (akelompok == "PE"):
         sfilter = '%public expose%'
     elif (akelompok == "DIV"):

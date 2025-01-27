@@ -114,15 +114,7 @@ def get_emiten_by_jenis_pengumuman(akelompok, aindex):
     cursor = conn.cursor(dictionary=True)
     today = date.today()
 
-    sfilter = '%'
-    if (akelompok == "PE"):
-        sfilter = '%public expose%'
-    elif (akelompok == "DIV"):
-        sfilter = '%dividen%'
-    elif (akelompok == "RUPS"):
-        sfilter = '%rups%'
-    elif (akelompok == "LK"):
-        sfilter = '%laporan%keuangan%'
+    sfilter = get_filter_pengumuman(akelompok)
 
     print(akelompok)
     print(sfilter)
@@ -178,11 +170,7 @@ def get_emiten_by_jenis_pengumuman(akelompok, aindex):
     
     return InlineKeyboardMarkup(keyboard)
 
-def get_pesan_pengumuman(akode_emiten, akelompok):
-    conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
-    today = date.today()
-
+def get_filter_pengumuman(akelompok):
     sfilter = '%'
     if (akelompok == "PE"):
         sfilter = '%public expose%'
@@ -190,6 +178,18 @@ def get_pesan_pengumuman(akode_emiten, akelompok):
         sfilter = '%dividen%'
     elif (akelompok == "RUPS"):
         sfilter = '%rups%'
+    elif (akelompok == "LK"):
+        sfilter = '%laporan%keuangan%'
+
+    return sfilter
+
+
+def get_pesan_pengumuman(akode_emiten, akelompok):
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    today = date.today()
+
+    sfilter = get_filter_pengumuman(akelompok)
 
     print(akode_emiten)
     print(sfilter)

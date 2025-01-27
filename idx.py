@@ -121,6 +121,8 @@ def get_emiten_by_jenis_pengumuman(akelompok, aindex):
         sfilter = '%dividen%'
     elif (akelompok == "RUPS"):
         sfilter = '%rups%'
+    elif (akelompok == "LK"):
+        sfilter = '%laporan%keuangan%'
 
     print(akelompok)
     print(sfilter)

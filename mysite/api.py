@@ -65,10 +65,15 @@ class Profile(db.Model):
     nama_emiten = db.Column(db.String(255), nullable=False)
     alamat = db.Column(db.Text, nullable=True)
     email = db.Column(db.Text, nullable=True)
+    fax = db.Column(db.String(60), nullable=True)
     sektor = db.Column(db.String(100), nullable=True)
     sub_sektor = db.Column(db.String(100), nullable=True)
     telepon = db.Column(db.String(50), nullable=True)
     website = db.Column(db.String(255), nullable=True)
+    industri = db.Column(db.String(100), nullable=True)
+    sub_industri = db.Column(db.String(100), nullable=True)
+    kegiatan_usaha_utama=db.Column(db.Text, nullable=True)
+
 
 # Model untuk tabel Sekretaris
 class Sekretaris(db.Model):
@@ -82,7 +87,129 @@ class Sekretaris(db.Model):
 
     id_profile = db.Column(db.Integer, db.ForeignKey('tb_profiles.id'), nullable=False)
 
+class Direktur(db.Model):
+    __tablename__ = 'tb_direktur'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    nama = db.Column(db.String(255), nullable=False)
+    jabatan = db.Column(db.String(255), nullable=True)
+    afiliasi = db.Column(db.String(255), nullable=True)
+    
+    id_profile = db.Column(db.Integer, db.ForeignKey('tb_profiles.id'), nullable=False)
+
+class Komisaris(db.Model):
+    __tablename__ = 'tb_komisaris'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    nama = db.Column(db.String(255), nullable=False)
+    jabatan = db.Column(db.String(255), nullable=True)
+    independen = db.Column(db.String(255), nullable=True)
+    
+    id_profile = db.Column(db.Integer, db.ForeignKey('tb_profiles.id'), nullable=False)
+
+class KomiteAudit(db.Model):
+    __tablename__ = 'tb_komite_audit'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    nama = db.Column(db.String(255), nullable=False)
+    jabatan = db.Column(db.String(255), nullable=True)
+    
+    id_profile = db.Column(db.Integer, db.ForeignKey('tb_profiles.id'), nullable=False)
+
+class PemegangSaham(db.Model):
+    __tablename__ = 'tb_pemegang_saham'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    jumlah = db.Column(db.Integer, nullable=True)
+    kategori = db.Column(db.String(50), nullable=True)    
+    nama = db.Column(db.String(255), nullable=True)
+    pengendali = db.Column(db.String(50), nullable=True)
+    persentase = db.Column(db.Double(255), nullable=True)
+    
+    id_profile = db.Column(db.Integer, db.ForeignKey('tb_profiles.id'), nullable=False)
+
 # Endpoint untuk memproses JSON
+def process_json_profile_sekretaris(data, id_profile):
+
+    print(f"proses sekretaris id_profile: {id_profile}")
+    Sekretaris.query.filter_by(id_profile=id_profile).delete()
+
+    # Memproses data Sekretaris
+    sekretaris_list = data.get('Sekretaris', [])
+    for sekretaris_data in sekretaris_list:
+        sekretaris = Sekretaris(
+            nama=sekretaris_data['Nama'],
+            telepon=sekretaris_data.get('Telepon'),
+            email=sekretaris_data.get('Email'),
+            hp=sekretaris_data.get('HP'),
+            fax=sekretaris_data.get('Fax'),
+            id_profile = id_profile
+        )
+        db.session.add(sekretaris)
+
+def process_json_profile_direktur(data, id_profile):
+
+    print(f"proses direktur id_profile: {id_profile}")
+    Direktur.query.filter_by(id_profile=id_profile).delete()
+
+    # Memproses data Sekretaris
+    direktur_list = data.get('Direktur', [])
+    for direktur_data in direktur_list:
+        direktur = Direktur(
+            nama=direktur_data['Nama'],
+            jabatan=direktur_data.get('Jabatan'),
+            afiliasi=direktur_data.get('Afiliasi'),
+            id_profile = id_profile
+        )
+        db.session.add(direktur)
+
+def process_json_profile_komisaris(data, id_profile):
+
+    print(f"proses komisaris id_profile: {id_profile}")
+    Komisaris.query.filter_by(id_profile=id_profile).delete()
+
+    # Memproses data komisaris
+    komisaris_list = data.get('Komisaris', [])
+    for komisaris_data in komisaris_list:
+        komisaris = Komisaris(
+            nama=komisaris_data['Nama'],
+            jabatan=komisaris_data.get('Jabatan'),
+            independen=komisaris_data.get('Independen'),
+            id_profile = id_profile
+        )
+        db.session.add(komisaris)
+
+def process_json_profile_komite_audit(data, id_profile):
+
+    print(f"proses komite audit id_profile: {id_profile}")
+    KomiteAudit.query.filter_by(id_profile=id_profile).delete()
+
+    # Memproses data komisaris
+    komite_audit_list = data.get('KomiteAudit', [])
+    for komite_audit_data in komite_audit_list:
+        komite_audit = KomiteAudit(
+            nama=komite_audit_data['Nama'],
+            jabatan=komite_audit_data.get('Jabatan'),
+            id_profile = id_profile
+        )
+        db.session.add(komite_audit)
+
+def process_json_profile_pemegang_saham(data, id_profile):
+
+    print(f"proses pemegang saham id_profile: {id_profile}")
+    PemegangSaham.query.filter_by(id_profile=id_profile).delete()
+
+    # Memproses data komisaris
+    pemegang_saham_list = data.get('PemegangSaham', [])
+    for pemegang_saham_data in pemegang_saham_list:
+        print(pemegang_saham_data)
+        
+        pemegang_saham = PemegangSaham(
+            jumlah=pemegang_saham_data['Jumlah'],
+            kategori=pemegang_saham_data['Kategori'],
+            nama=pemegang_saham_data['Nama'],
+            pengendali=pemegang_saham_data.get('Pengendali'),
+            persentase=pemegang_saham_data.get('Persentase'),
+            id_profile = id_profile
+        )
+        db.session.add(pemegang_saham)
+
 @api_bp.route('/process-json-profile', methods=['POST'])
 def process_json_profile():
     try:
@@ -102,6 +229,10 @@ def process_json_profile():
                 profile.sub_sektor = profile_data.get('SubIndustri')
                 profile.telepon = profile_data.get('Telepon')
                 profile.website = profile_data.get('Website')
+                profile.fax = profile_data.get('Fax')
+                profile.industri = profile_data.get('Industri')
+                profile.sub_industri = profile_data.get('SubIndustri')
+                profile.kegiatan_usaha_utama = profile_data.get('KegiatanUsahaUtama')
             else:
                 profile = Profile(
                     kode_emiten=profile_data['KodeEmiten'],
@@ -111,27 +242,21 @@ def process_json_profile():
                     sektor=profile_data.get('Sektor'),
                     sub_sektor=profile_data.get('SubIndustri'),
                     telepon=profile_data.get('Telepon'),
-                    website=profile_data.get('Website')
+                    website=profile_data.get('Website'),
+                    fax = profile_data.get('Fax'),
+                    industri = profile_data.get('Industri'),
+                    sub_industri = profile_data.get('SubIndustri'),
+                    kegiatan_usaha_utama = profile_data.get('KegiatanUsahaUtama')
                 )
 
                 db.session.add(profile)
 
             db.session.flush()
-
-            Sekretaris.query.filter_by(id_profile=profile.id).delete()
-
-        # Memproses data Sekretaris
-        sekretaris_list = data.get('Sekretaris', [])
-        for sekretaris_data in sekretaris_list:
-            sekretaris = Sekretaris(
-                nama=sekretaris_data['Nama'],
-                telepon=sekretaris_data.get('Telepon'),
-                email=sekretaris_data.get('Email'),
-                hp=sekretaris_data.get('HP'),
-                fax=sekretaris_data.get('Fax'),
-                id_profile = profile.id
-            )
-            db.session.add(sekretaris)
+            process_json_profile_sekretaris(data, profile.id)
+            process_json_profile_direktur(data, profile.id)
+            process_json_profile_komisaris(data, profile.id)
+            process_json_profile_komite_audit(data, profile.id)
+            process_json_profile_pemegang_saham(data, profile.id)
 
         # Menyimpan perubahan ke database
         db.session.commit()
@@ -142,6 +267,7 @@ def process_json_profile():
         # Jika terjadi kesalahan, rollback perubahan
         db.session.rollback()
         return jsonify({"error": str(e)}), 500
+
 
 
 @api_bp.route('/process-json-keterbukaan', methods=['POST'])

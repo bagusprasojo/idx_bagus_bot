@@ -114,7 +114,7 @@ def get_emiten_by_jenis_pengumuman(akelompok, aindex):
     cursor = conn.cursor(dictionary=True)
     today = date.today()
 
-    sfilter = get_filter_pengumuman(akelompok)
+    sfilter, sfilter_or = get_filter_pengumuman(akelompok)
 
     print(akelompok)
     print(sfilter)
@@ -125,10 +125,10 @@ def get_emiten_by_jenis_pengumuman(akelompok, aindex):
     
     cursor.execute("SELECT a.kode_emiten, max(a.tgl_pengumuman) as tgl_pengumuman "
                     + " FROM tb_pengumuman a " 
-                    + " WHERE a.judul_pengumuman like %s "
+                    + " WHERE (a.judul_pengumuman like %s or a.judul_pengumuman like %s)"
                     + " GROUP BY a.kode_emiten " 
                     + " order by 2 desc " 
-                    + " limit %s offset %s", (sfilter,jml_baris, offset))
+                    + " limit %s offset %s", (sfilter,sfilter_or, jml_baris, offset))
     keterbukaans = cursor.fetchall()
     
 
@@ -172,16 +172,22 @@ def get_emiten_by_jenis_pengumuman(akelompok, aindex):
 
 def get_filter_pengumuman(akelompok):
     sfilter = f'%{akelompok}%'
+    sfilter_or = f'%{akelompok}%'
+
     if (akelompok == "PE"):
         sfilter = '%public expose%'
+        sfilter_or = '%public expose%'
     elif (akelompok == "DIV"):
         sfilter = '%dividen%'
+        sfilter_or = '%dividen%'
     elif (akelompok == "RUPS"):
         sfilter = '%rups%'
+        sfilter_or = '%Rapat%Umum%Pemegang%Saham%'
     elif (akelompok == "LK"):
         sfilter = '%laporan%keuangan%'
+        sfilter_or = '%laporan%keuangan%'
 
-    return sfilter
+    return sfilter, sfilter_or
 
 
 def get_pesan_pengumuman(akode_emiten, akelompok):
@@ -189,12 +195,13 @@ def get_pesan_pengumuman(akode_emiten, akelompok):
     cursor = conn.cursor(dictionary=True)
     today = date.today()
 
-    sfilter = get_filter_pengumuman(akelompok)
+    sfilter, sfilter_or = get_filter_pengumuman(akelompok)
 
     print(akode_emiten)
     print(sfilter)
+    print(sfilter_or)
     
-    cursor.execute("SELECT * FROM tb_pengumuman WHERE kode_emiten = %s AND judul_pengumuman like %s order by tgl_pengumuman desc limit 10", (akode_emiten,sfilter))
+    cursor.execute("SELECT * FROM tb_pengumuman WHERE kode_emiten = %s AND (judul_pengumuman like %s or judul_pengumuman like %s) order by tgl_pengumuman desc limit 10", (akode_emiten,sfilter, sfilter_or))
     keterbukaans = cursor.fetchall()
     
 

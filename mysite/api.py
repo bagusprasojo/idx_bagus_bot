@@ -1,4 +1,5 @@
 # api.py
+from datetime import datetime
 from flask import Blueprint, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from enum import Enum
@@ -120,8 +121,46 @@ class PemegangSaham(db.Model):
     kategori = db.Column(db.String(50), nullable=True)    
     nama = db.Column(db.String(255), nullable=True)
     pengendali = db.Column(db.String(50), nullable=True)
-    persentase = db.Column(db.Double(255), nullable=True)
+    # persentase = db.Column(db.Double(255), nullable=True)
+    persentase = db.Column(db.Numeric(precision=10, scale=2))
     
+    id_profile = db.Column(db.Integer, db.ForeignKey('tb_profiles.id'), nullable=False)
+
+class AnakPerusahaan(db.Model):
+    __tablename__ = 'tb_anak_perusahaan'
+
+    id = db.Column(db.Integer, primary_key=True)
+    bidang_usaha = db.Column(db.String(100), nullable=False)
+    jumlah_aset = db.Column(db.Numeric(precision=15, scale=2), nullable=False)  # Precision 15 dan scale 2 untuk angka desimal
+    lokasi = db.Column(db.String(100), nullable=False)
+    mata_uang = db.Column(db.String(10), nullable=False)
+    nama = db.Column(db.String(255), nullable=False)
+    persentase = db.Column(db.Numeric(precision=5, scale=2), nullable=False)  # Persentase, biasanya 0-100
+    satuan = db.Column(db.String(50), nullable=False)
+    status_operasi = db.Column(db.String(50), nullable=True)
+    tahun_komersil = db.Column(db.String(4), nullable=False)
+
+    id_profile = db.Column(db.Integer, db.ForeignKey('tb_profiles.id'), nullable=False)
+
+class Dividen(db.Model):
+    __tablename__ = 'tb_dividen'
+
+    id = db.Column(db.Integer, primary_key=True)
+    nama = db.Column(db.String(255), nullable=False)
+    jenis = db.Column(db.String(50), nullable=False)
+    tahun_buku = db.Column(db.String(4), nullable=False)  # Tahun buku disimpan sebagai string
+    total_saham_bonus = db.Column(db.Numeric(precision=15, scale=2), nullable=False, default=0.0)  # Saham bonus
+    cash_dividen_per_saham_mu = db.Column(db.String(10), nullable=True)  # Mata uang cash dividen per saham
+    cash_dividen_per_saham = db.Column(db.Numeric(precision=15, scale=2), nullable=False, default=0.0)  # Cash dividen per saham
+    tanggal_cum = db.Column(db.DateTime, nullable=False)
+    tanggal_ex_reguler_dan_negosiasi = db.Column(db.DateTime, nullable=False)
+    tanggal_dps = db.Column(db.DateTime, nullable=False)
+    tanggal_pembayaran = db.Column(db.DateTime, nullable=False)
+    rasio1 = db.Column(db.Numeric(precision=5, scale=2), nullable=False, default=0.0)  # Rasio 1
+    rasio2 = db.Column(db.Numeric(precision=5, scale=2), nullable=False, default=0.0)  # Rasio 2
+    cash_dividen_total_mu = db.Column(db.String(10), nullable=True)  # Mata uang total cash dividen
+    cash_dividen_total = db.Column(db.Numeric(precision=18, scale=2), nullable=False, default=0.0)  # Total cash dividen
+
     id_profile = db.Column(db.Integer, db.ForeignKey('tb_profiles.id'), nullable=False)
 
 # Endpoint untuk memproses JSON
@@ -192,23 +231,73 @@ def process_json_profile_komite_audit(data, id_profile):
 
 def process_json_profile_pemegang_saham(data, id_profile):
 
-    print(f"proses pemegang saham id_profile: {id_profile}")
     PemegangSaham.query.filter_by(id_profile=id_profile).delete()
 
-    # Memproses data komisaris
     pemegang_saham_list = data.get('PemegangSaham', [])
     for pemegang_saham_data in pemegang_saham_list:
-        print(pemegang_saham_data)
         
         pemegang_saham = PemegangSaham(
-            jumlah=pemegang_saham_data['Jumlah'],
+            jumlah = int(pemegang_saham_data['Jumlah']),
             kategori=pemegang_saham_data['Kategori'],
             nama=pemegang_saham_data['Nama'],
             pengendali=pemegang_saham_data.get('Pengendali'),
             persentase=pemegang_saham_data.get('Persentase'),
             id_profile = id_profile
         )
+
         db.session.add(pemegang_saham)
+
+def process_json_profile_anak_perusahaan(data, id_profile):
+    AnakPerusahaan.query.filter_by(id_profile=id_profile).delete()
+    anak_perusahaan_list = data.get('AnakPerusahaan', [])
+    
+    for anak_perusahaan_data in anak_perusahaan_list:
+        
+        anak_perusahaan = AnakPerusahaan(
+            bidang_usaha=anak_perusahaan_data['BidangUsaha'],
+            jumlah_aset=anak_perusahaan_data['JumlahAset'],
+            lokasi=anak_perusahaan_data['Lokasi'],
+            mata_uang=anak_perusahaan_data['MataUang'],
+            nama=anak_perusahaan_data['Nama'],
+            persentase=anak_perusahaan_data['Persentase'],
+            satuan=anak_perusahaan_data['Satuan'],
+            status_operasi=anak_perusahaan_data.get('StatusOperasi', ''),
+            tahun_komersil=anak_perusahaan_data.get('TahunKomersil', '0'),
+            id_profile=id_profile  # Menyimpan relasi dengan profile
+        )
+
+        db.session.add(anak_perusahaan)
+
+def process_json_profile_dividen(data, id_profile):
+    Dividen.query.filter_by(id_profile=id_profile).delete()
+
+    dividen_list = data.get('Dividen', [])
+    
+    # Loop untuk memproses setiap data dividen
+    for dividen_data in dividen_list:
+        
+        dividen = Dividen(
+            nama=dividen_data['Nama'],
+            jenis=dividen_data['Jenis'],
+            tahun_buku=dividen_data['TahunBuku'],
+            total_saham_bonus=dividen_data.get('TotalSahamBonus', 0.0),
+            cash_dividen_per_saham_mu=dividen_data.get('CashDividenPerSahamMU', ''),
+            cash_dividen_per_saham=dividen_data.get('CashDividenPerSaham', 0.0),
+            tanggal_cum=datetime.strptime(dividen_data['TanggalCum'], '%Y-%m-%dT%H:%M:%S'),
+            tanggal_ex_reguler_dan_negosiasi=datetime.strptime(dividen_data['TanggalExRegulerDanNegosiasi'], '%Y-%m-%dT%H:%M:%S'),
+            tanggal_dps=datetime.strptime(dividen_data['TanggalDPS'], '%Y-%m-%dT%H:%M:%S'),
+            tanggal_pembayaran=datetime.strptime(dividen_data['TanggalPembayaran'], '%Y-%m-%dT%H:%M:%S'),
+            rasio1=dividen_data.get('Rasio1', 0),
+            rasio2=dividen_data.get('Rasio2', 0),
+            cash_dividen_total_mu=dividen_data.get('CashDividenTotalMU', ''),
+            cash_dividen_total=dividen_data.get('CashDividenTotal', 0.0),
+            id_profile=id_profile  # Menyimpan relasi dengan profile
+        )
+
+        # Menambahkan objek dividen ke dalam session
+        db.session.add(dividen)
+    
+
 
 @api_bp.route('/process-json-profile', methods=['POST'])
 def process_json_profile():
@@ -257,6 +346,8 @@ def process_json_profile():
             process_json_profile_komisaris(data, profile.id)
             process_json_profile_komite_audit(data, profile.id)
             process_json_profile_pemegang_saham(data, profile.id)
+            process_json_profile_anak_perusahaan(data, profile.id)
+            process_json_profile_dividen(data, profile.id)
 
         # Menyimpan perubahan ke database
         db.session.commit()

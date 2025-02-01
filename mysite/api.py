@@ -275,6 +275,25 @@ def process_json_profile_dividen(data, id_profile):
     
     # Loop untuk memproses setiap data dividen
     for dividen_data in dividen_list:
+
+        tanggal_invalid = datetime(1900, 1, 1)
+        tanggal_dps = datetime.strptime(dividen_data['TanggalDPS'], '%Y-%m-%dT%H:%M:%S')
+        if tanggal_dps == tanggal_invalid:
+            tanggal_dps = None  # Set NULL di database
+
+        tanggal_cum=datetime.strptime(dividen_data['TanggalCum'], '%Y-%m-%dT%H:%M:%S')
+        if tanggal_cum == tanggal_invalid:
+            tanggal_cum = None
+
+        tanggal_ex_reguler_dan_negosiasi=datetime.strptime(dividen_data['TanggalExRegulerDanNegosiasi'], '%Y-%m-%dT%H:%M:%S')
+        if tanggal_ex_reguler_dan_negosiasi == tanggal_invalid:
+            tanggal_ex_reguler_dan_negosiasi = None
+
+        tanggal_pembayaran=datetime.strptime(dividen_data['TanggalPembayaran'], '%Y-%m-%dT%H:%M:%S')
+        if tanggal_pembayaran == tanggal_invalid:
+            tanggal_pembayaran = None
+
+
         
         dividen = Dividen(
             nama=dividen_data['Nama'],
@@ -283,10 +302,10 @@ def process_json_profile_dividen(data, id_profile):
             total_saham_bonus=dividen_data.get('TotalSahamBonus', 0.0),
             cash_dividen_per_saham_mu=dividen_data.get('CashDividenPerSahamMU', ''),
             cash_dividen_per_saham=dividen_data.get('CashDividenPerSaham', 0.0),
-            tanggal_cum=datetime.strptime(dividen_data['TanggalCum'], '%Y-%m-%dT%H:%M:%S'),
-            tanggal_ex_reguler_dan_negosiasi=datetime.strptime(dividen_data['TanggalExRegulerDanNegosiasi'], '%Y-%m-%dT%H:%M:%S'),
-            tanggal_dps=datetime.strptime(dividen_data['TanggalDPS'], '%Y-%m-%dT%H:%M:%S'),
-            tanggal_pembayaran=datetime.strptime(dividen_data['TanggalPembayaran'], '%Y-%m-%dT%H:%M:%S'),
+            tanggal_cum=tanggal_cum,
+            tanggal_ex_reguler_dan_negosiasi=tanggal_ex_reguler_dan_negosiasi,
+            tanggal_dps=tanggal_dps,
+            tanggal_pembayaran=tanggal_pembayaran,
             rasio1=dividen_data.get('Rasio1', 0),
             rasio2=dividen_data.get('Rasio2', 0),
             cash_dividen_total_mu=dividen_data.get('CashDividenTotalMU', ''),

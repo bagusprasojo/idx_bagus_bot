@@ -317,6 +317,20 @@ def process_json_profile_dividen(data, id_profile):
         db.session.add(dividen)
     
 
+@api_bp.route('/get_kode_emiten', methods=['GET'])
+def get_kode_emiten():
+    with db.engine.connect() as connection:
+        result = connection.execute(db.text("""
+            SELECT DISTINCT a.kode_emiten 
+            FROM tb_pengumuman a
+            LEFT JOIN tb_profiles b ON a.kode_emiten = b.kode_emiten
+            WHERE b.kode_emiten IS NULL limit 4
+        """))
+        
+        data = [row[0] for row in result]
+    
+    return jsonify({'kode_emiten': data})
+
 
 @api_bp.route('/process-json-profile', methods=['POST'])
 def process_json_profile():

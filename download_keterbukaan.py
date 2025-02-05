@@ -82,7 +82,7 @@ try:
         tgl_akhir = datetime.datetime.now().strftime('%Y%m%d')  # Tanggal sekarang dalam format YYYYMMDD
         tgl_awal = (datetime.datetime.now() - datetime.timedelta(days=7)).strftime('%Y%m%d')  # 7 hari yang lalu       
 
-        filename = f"{tgl_awal}_{tgl_akhir}_{i}.json"
+        filename = f"keterbukaan/{tgl_awal}_{tgl_akhir}_{i}.json"
         print('Download ' + filename)
         download_keterbukaan(i,tgl_awal , tgl_akhir, filename)
         

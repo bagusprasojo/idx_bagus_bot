@@ -324,7 +324,7 @@ def get_kode_emiten():
             SELECT DISTINCT a.kode_emiten 
             FROM tb_pengumuman a
             LEFT JOIN tb_profiles b ON a.kode_emiten = b.kode_emiten
-            WHERE b.kode_emiten IS NULL limit 4
+            WHERE b.kode_emiten IS NULL 
         """))
         
         data = [row[0] for row in result]

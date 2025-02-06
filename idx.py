@@ -108,6 +108,18 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text('Silakan manfaatkan BOT ini untuk keperluan Trading/Investing\n\nKetik /help untuk mendapatkan daftar perintah yang dipakai')
 
     
+def get_profile(akode_emiten, akelompok):
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("select * from tb_profiles a where a.kode_emiten = %s", (akode_emiten))
+    profiles = cursor.fetchall()
+
+    pesan_profile = "";
+    for profile in profiles:
+        pesan_profile = pesan_profile + f"<b>Kode : {profile['kode_emiten']}</b>\n"
+        pesan_profile = pesan_profile + f"<b>Nama : {profile['Nama_emiten']}</b>\n"
+        pesan_profile = pesan_profile + f"<b>Alamat : {profile['alamat']}</b>\n"
+
 
 def get_emiten_by_jenis_pengumuman(akelompok, aindex):
     conn = get_db_connection()
@@ -201,7 +213,7 @@ def get_pesan_pengumuman(akode_emiten, akelompok):
     print(sfilter)
     print(sfilter_or)
     
-    cursor.execute("SELECT * FROM tb_pengumuman WHERE kode_emiten = %s AND (judul_pengumuman like %s or judul_pengumuman like %s) order by tgl_pengumuman desc limit 10", (akode_emiten,sfilter, sfilter_or))
+    cursor.execute("SELECT * FROM tb_pengumuman WHERE kode_emiten like %s AND (judul_pengumuman like %s or judul_pengumuman like %s) order by tgl_pengumuman desc limit 10", (akode_emiten,sfilter, sfilter_or))
     keterbukaans = cursor.fetchall()
     
 
@@ -284,6 +296,38 @@ async def keterbukaan(update: Update, context: ContextTypes.DEFAULT_TYPE, is_cal
         else:
             await message.reply_text(error_msg)
 
+async def profile(update: Update, context: ContextTypes.DEFAULT_TYPE, is_callback: bool = False) -> None:
+    # Tentukan sumber pesan
+    message = (
+        update.callback_query.message if is_callback else update.message
+    )
+
+    try:
+        if context.args:
+            kode_emiten = context.args[0].upper()
+
+            index = 1
+            if len(context.args) > 1:
+                index = int(context.args[1])
+
+            pesan = get_profile(akelompok, "pe")
+
+            # keyboard = get_emiten_by_jenis_pengumuman(kelompok, index)
+
+            if is_callback:
+                await message.edit_text(pesan, parse_mode='HTML', reply_markup=keyboard)
+            else:
+                await message.reply_text(pesan, parse_mode='HTML', reply_markup=keyboard)
+        else:
+            if is_callback:
+                await message.edit_text('<b>Please provide Option Code</b>', parse_mode='HTML')
+            else:
+                await message.reply_text('<b>Please provide Option Code</b>', parse_mode='HTML')
+
+        simpan_log_akses(update, 'profile', is_callback)
+    except Exception as e:
+        print(f"Error: {e}")
+        await update.message.reply_text("Error happened, try again")
 
 async def emiten(update: Update, context: ContextTypes.DEFAULT_TYPE, is_callback: bool = False) -> None:
     # Tentukan sumber pesan
@@ -465,6 +509,7 @@ def main() -> None:
         application.add_handler(CommandHandler("help", help))
         application.add_handler(CommandHandler("keterbukaan", keterbukaan))
         application.add_handler(CommandHandler("emiten", emiten))
+        application.add_handler(CommandHandler("profile", profile))
         application.add_handler(CallbackQueryHandler(handle_callback))
         
         # Memulai bot
